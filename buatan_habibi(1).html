@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gombal Buat Kamu 💗</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+  background:linear-gradient(135deg,#ffd6e7,#f7d9ff,#d8e7ff);
+  overflow:hidden;color:#4b2940
+}
+.card{
+  width:min(92%,480px);padding:32px 25px;text-align:center;
+  background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.8);
+  border-radius:28px;box-shadow:0 20px 60px rgba(107,61,100,.2);
+  position:relative;z-index:2
+}
+h1{margin:0 0 10px;font-size:30px}
+p{line-height:1.6}
+input{
+  width:100%;padding:14px 16px;border:2px solid #f1bfd5;border-radius:14px;
+  outline:none;font-size:16px;margin:12px 0
+}
+input:focus{border-color:#d96b9e}
+button{
+  border:0;padding:13px 22px;border-radius:999px;font-size:16px;
+  font-weight:700;cursor:pointer;transition:.2s
+}
+.primary{background:#e85d93;color:white}
+.primary:hover{transform:scale(1.04)}
+.hidden{display:none}
+.question{font-size:20px;font-weight:700;margin:20px 0}
+.answer{font-size:18px;background:#fff0f6;padding:18px;border-radius:18px;margin:18px 0}
+.choices{display:flex;justify-content:center;gap:15px;min-height:55px;position:relative}
+#noBtn{background:#eee;color:#555;position:relative}
+#yesBtn{background:#e85d93;color:white}
+.heart{
+  position:fixed;bottom:-30px;font-size:22px;opacity:.6;
+  animation:float 7s linear infinite;z-index:1
+}
+@keyframes float{
+  0%{transform:translateY(0) rotate(0);opacity:0}
+  15%{opacity:.7}
+  100%{transform:translateY(-110vh) rotate(360deg);opacity:0}
+}
+.small{font-size:13px;opacity:.65}
+.progress{font-size:13px;opacity:.6;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="card">
+
+<section id="namePage">
+  <div style="font-size:55px">💌</div>
+  <h1>Hai, kamu!</h1>
+  <p>Sebelum lanjut, tulis nama kamu dulu ya 👀</p>
+  <input id="nameInput" placeholder="Nama kamu..." maxlength="30">
+  <button class="primary" onclick="start()">Lanjut 💗</button>
+</section>
+
+<section id="gamePage" class="hidden">
+  <div style="font-size:50px" id="emoji">😏</div>
+  <div class="progress" id="progress">Tebak-tebakan 1 dari 3</div>
+  <h1 id="greeting"></h1>
+  <p>Aku punya tebak-tebakan buat kamu.</p>
+  <div class="question" id="riddle"></div>
+  <input id="answerInput" placeholder="Tulis jawabanmu di sini..." maxlength="100">
+  <button class="primary" onclick="submitAnswer()">Jawab ✨</button>
+</section>
+
+<section id="answerPage" class="hidden">
+  <div style="font-size:55px">💡</div>
+  <div class="progress" id="answerProgress">Jawaban 1 dari 3</div>
+  <h1>Jawabannya...</h1>
+  <div class="answer" id="correctAnswer"></div>
+  <p id="answerComment"></p>
+  <button class="primary" onclick="nextRiddle()">Lanjut ➜</button>
+</section>
+
+<section id="revealPage" class="hidden">
+  <div style="font-size:55px">❤️</div>
+  <h1>Yang terakhir...</h1>
+  <p>Jawaban kamu:</p>
+  <div class="answer" id="userAnswer"></div>
+  <p><b>Mau tahu jawaban sebenarnya nggak?</b></p>
+  <div class="choices">
+    <button id="yesBtn" onclick="showAnswer()">Mau 💗</button>
+    <button id="noBtn" onmouseover="runAway()" ontouchstart="runAway()">Nggak 😝</button>
+  </div>
+</section>
+
+<section id="finalPage" class="hidden">
+  <div style="font-size:65px">💖</div>
+  <h1>Jadi...</h1>
+  <div class="answer" id="realAnswer"></div>
+  <p>Hehe, sekarang kamu udah tahu jawabannya 😳</p>
+  <button class="primary" onclick="location.reload()">Ulangi 🔄</button>
+</section>
+
+</div>
+
+<script>
+const riddles = [
+  {
+    q: "Kenapa aku nggak pernah bosen lihat kamu?",
+    answer: "Karena kamu itu kayak notifikasi favorit—selalu bikin aku senyum. 💗"
+  },
+  {
+    q: "Apa bedanya kamu sama bintang?",
+    answer: "Kalau bintang ada di langit, kalau kamu selalu ada di pikiran aku. ✨"
+  },
+  {
+    q: "Kenapa aku bikin web ini khusus buat kamu?",
+    answer: "Karena sebenarnya aku bukan cuma mau kasih gombalan... aku mau jujur kalau aku suka sama kamu. ❤️"
+  }
+];
+
+let current = 0;
+let name = "";
+let answers = [];
+
+function start(){
+  name=document.getElementById("nameInput").value.trim();
+  if(!name){alert("Tulis nama kamu dulu dong 😭");return}
+  document.getElementById("namePage").classList.add("hidden");
+  document.getElementById("gamePage").classList.remove("hidden");
+  document.getElementById("greeting").textContent=`Hai, ${name}! 💕`;
+  loadRiddle();
+}
+
+function loadRiddle(){
+  document.getElementById("progress").textContent=`Tebak-tebakan ${current+1} dari 3`;
+  document.getElementById("riddle").textContent=riddles[current].q;
+  document.getElementById("answerInput").value="";
+  document.getElementById("emoji").textContent=current===2?"❤️":"😏";
+}
+
+function submitAnswer(){
+  const answer=document.getElementById("answerInput").value.trim();
+  if(!answer){alert("Jawab dulu dong 😭");return}
+  answers[current]=answer;
+
+  document.getElementById("gamePage").classList.add("hidden");
+
+  if(current<2){
+    document.getElementById("answerPage").classList.remove("hidden");
+    document.getElementById("answerProgress").textContent=`Jawaban ${current+1} dari 3`;
+    document.getElementById("correctAnswer").textContent=riddles[current].answer;
+    document.getElementById("answerComment").textContent=
+      current===0 ? "Hehe, masih pemanasan dulu 😏" : "Nah, sekarang mulai serius 👀";
+  }else{
+    document.getElementById("revealPage").classList.remove("hidden");
+    document.getElementById("userAnswer").textContent=`"${answer}"`;
+  }
+}
+
+function nextRiddle(){
+  current++;
+  document.getElementById("answerPage").classList.add("hidden");
+  document.getElementById("gamePage").classList.remove("hidden");
+  loadRiddle();
+}
+
+function showAnswer(){
+  document.getElementById("revealPage").classList.add("hidden");
+  document.getElementById("finalPage").classList.remove("hidden");
+  document.getElementById("realAnswer").textContent=riddles[2].answer;
+}
+
+function runAway(){
+  const btn=document.getElementById("noBtn");
+  const maxX=Math.max(20,window.innerWidth-150);
+  const maxY=Math.max(20,window.innerHeight-100);
+  btn.style.position="fixed";
+  btn.style.left=Math.random()*maxX+"px";
+  btn.style.top=Math.random()*maxY+"px";
+}
+
+setInterval(()=>{
+  const h=document.createElement("div");
+  h.className="heart";
+  h.textContent=["💗","💖","💕","❤️"][Math.floor(Math.random()*4)];
+  h.style.left=Math.random()*100+"vw";
+  h.style.animationDuration=(5+Math.random()*4)+"s";
+  document.body.appendChild(h);
+  setTimeout(()=>h.remove(),9000);
+},700);
+</script>
+</body>
+</html>
